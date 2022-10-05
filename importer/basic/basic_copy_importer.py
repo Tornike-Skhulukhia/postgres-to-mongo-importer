@@ -30,7 +30,7 @@ def _copy_table_to_mongo(
         while len(next_rows_to_insert) > 0:
             # process rows
             mongo_conn[destination_db_name_in_mongo][table_name].insert_many(
-                (
+                documents=(
                     refine_postgres_doc_for_mongodb(dict(zip(table_column_names, row)))
                     for row in next_rows_to_insert
                 )
