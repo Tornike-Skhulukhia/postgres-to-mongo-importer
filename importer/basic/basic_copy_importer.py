@@ -12,7 +12,6 @@ def _copy_table_to_mongo(
     table_name,
     progressbar_description,
     destination_db_name_in_mongo,
-    delete_existing_mongo_db,
     fetch_many_num=1000,
 ):
 
@@ -102,5 +101,4 @@ def do_basic_import(
             table_name=table_name,
             progressbar_description=progressbar_description,
             destination_db_name_in_mongo=destination_db_name_in_mongo,
-            delete_existing_mongo_db=delete_existing_mongo_db,
         )

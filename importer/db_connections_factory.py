@@ -1,7 +1,7 @@
 import psycopg2
 from pymongo import MongoClient
 
-from . import MongoConnectionArgsModel, PostgresConnectionArgsModel
+from importer import MongoConnectionArgsModel, PostgresConnectionArgsModel
 
 
 def get_db_connection(db_name, params):
