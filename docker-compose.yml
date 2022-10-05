@@ -6,6 +6,7 @@ services:
       - ./env_files/mongo_dev.env
     ports:
       - 27019:27017
+    restart: unless-stopped
   postgres:
     image: postgres:14
     container_name: importer_postgres
@@ -14,4 +15,23 @@ services:
     ports:
       - 5434:5432
     volumes:
-      - ./init_scripts/postgres_initial_test_script.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init_scripts/postgres/:/docker-entrypoint-initdb.d/
+    networks:
+      - skynet
+    restart: unless-stopped
+  pgadmin:
+    container_name: "importer_pgadmin"
+    image: dpage/pgadmin4:6.14
+    environment:
+      PGADMIN_DEFAULT_EMAIL: change_me@gmail.com # use this to login on http://localhost:6050
+      PGADMIN_DEFAULT_PASSWORD: password # and this also
+    ports:
+      - 6050:80
+    networks:
+      - skynet
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+networks:
+  skynet:

@@ -9,3 +9,5 @@ Goal: Simplify full data transfer from postgresql to MongoDB.
 3) "Advanced" - define how you want to reshape data when doing import - map specific postgres field types to specific mongodb BSON types, automatic conversion of primary keys into _id fields(configurable?), using references vs nesting 1-to many values into arrays e.t.c - (this step probably should be done with some basic scripts that our software will generate for user?)
 
 
+# later todos
+. support replicated/sharded clusters

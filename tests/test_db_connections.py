@@ -1,5 +1,5 @@
 """
-Make sure we can connect to test databases for other tests to run properly
+Make sure we can connect to local test databases for other tests to run properly
 """
 
 
