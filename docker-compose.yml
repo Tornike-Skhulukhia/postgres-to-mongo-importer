@@ -1,0 +1,17 @@
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: importer_mongo
+    env_file:
+      - ./env_files/mongo_dev.env
+    ports:
+      - 27019:27017
+  postgres:
+    image: postgres:14
+    container_name: importer_postgres
+    env_file:
+      - ./env_files/postgres_dev.env
+    ports:
+      - 5434:5432
+    volumes:
+      - ./init_scripts/postgres_initial_test_script.sql:/docker-entrypoint-initdb.d/init.sql
