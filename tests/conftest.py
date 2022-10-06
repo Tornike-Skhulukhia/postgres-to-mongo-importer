@@ -65,7 +65,7 @@ def local_mongo_connection_params():
         host="localhost" if OS_NAME == "linuxmint" else "mongo",
         username=os.environ.get("MONGO_INITDB_ROOT_USERNAME"),
         password=os.environ.get("MONGO_INITDB_ROOT_PASSWORD"),
-        port=27019,
+        port=27017,
     )
 
 
