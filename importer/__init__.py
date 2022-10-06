@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Extra
 from rich.console import Console
 
+
 RICH_CONSOLE = Console()
 
 ###############################
@@ -31,8 +32,8 @@ class MongoConnectionArgsModel(BaseModel):
     """
 
     host: str
-    username: str
-    password: str
+    username: Optional[str]
+    password: Optional[str]
     port: int
 
     class Config:

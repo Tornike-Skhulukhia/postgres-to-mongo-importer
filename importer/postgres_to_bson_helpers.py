@@ -37,7 +37,6 @@ def _reshape_doc_to_make_sure_postgres_primary_keys_will_be_primary_keys_in_mong
     as primary key in postgres, otherwise dict/object of {col_1: val_1, col_2:val_2...}
     shape will be used
     """
-    assert "_id" not in doc, f"_id field already found in document {doc}"
 
     if len(pk_columns) == 1:
         doc["_id"] = doc.pop(pk_columns[0])

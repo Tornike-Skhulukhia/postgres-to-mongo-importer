@@ -7,10 +7,6 @@ from importer.db_connections_factory import get_db_connection
 load_dotenv("env_files/mongo_dev.env")
 load_dotenv("env_files/postgres_dev.env")
 
-# # we need this to fix github actions issues
-# with open("/etc/os-release") as f:
-#     OS_NAME = [i.split("=")[-1].strip() for i in f if i.lower().startswith("id=")][0]
-
 
 @pytest.fixture(scope="session")
 def postgres_test_db_conn():
@@ -18,7 +14,6 @@ def postgres_test_db_conn():
         "postgresql",
         dict(
             database="test_db",
-            # host="localhost" if OS_NAME == "linuxmint" else "postgres",
             host="localhost",
             user=os.environ.get("POSTGRES_USER"),
             password=os.environ.get("POSTGRES_PASSWORD"),
@@ -32,7 +27,6 @@ def postgres_test_db_conn():
 def local_postgres_world_database_connection_params():
     return dict(
         database="world",
-        # host="localhost" if OS_NAME == "linuxmint" else "postgres",
         host="localhost",
         user=os.environ.get("POSTGRES_USER"),
         password=os.environ.get("POSTGRES_PASSWORD"),
@@ -64,7 +58,6 @@ def remote_postgres_connection_params():
 @pytest.fixture(scope="session")
 def local_mongo_connection_params():
     return dict(
-        # host="localhost" if OS_NAME == "linuxmint" else "mongo",
         host="localhost",
         username=os.environ.get("MONGO_INITDB_ROOT_USERNAME"),
         password=os.environ.get("MONGO_INITDB_ROOT_PASSWORD"),
