@@ -8,13 +8,13 @@ def test_mongo(local_mongo_client):
     assert len(local_mongo_client.list_database_names()) > 0
 
 
-# def test_postgres(postgres_test_db_conn):
-#     # no errors
-#     with postgres_test_db_conn.cursor() as pg_cursor:
-#         pg_cursor.execute(
-#             "select * from test_table;",
-#         )
+def test_postgres(postgres_test_db_conn):
+    # no errors
+    with postgres_test_db_conn.cursor() as pg_cursor:
+        pg_cursor.execute(
+            "select * from test_table;",
+        )
 
-#         data = pg_cursor.fetchall()
+        data = pg_cursor.fetchall()
 
-#         assert sorted(data) == [(1, "Aaa"), (2, "Bbb"), (3, "Ccc")]
+        assert sorted(data) == [(1, "Aaa"), (2, "Bbb"), (3, "Ccc")]
