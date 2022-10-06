@@ -1,5 +1,7 @@
 ![Postgres to Mongo image](static/postgres_to_mongo_image.png 'Postgres to Mongo image')
 
+![tests](https://github.com/Tornike-Skhulukhia/postgres-to-mongo-importer/actions/workflows/main.yml/badge.svg)
+
 # Module allows to
 
 - [x] Easily copy data from postgres database to mongodb.
