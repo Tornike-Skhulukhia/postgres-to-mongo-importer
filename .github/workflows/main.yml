@@ -1,13 +1,30 @@
 name: tests
 on: [push]
 jobs:
-  tests:
+  build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env_file:
+          - ./env_files/postgres_dev.env
+        ports:
+          - 5434:5432
+        volumes:
+          - ./init_scripts/postgres/:/docker-entrypoint-initdb.d/
+      mongo:
+        image: mongo:6.0
+        env_file:
+          - ./env_files/mongo_dev.env
+        ports:
+          - 27019:27017
+
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
-          python-version: "3.10"
+          python-version: '3.10'
       - run: pip install poetry
       - run: poetry config virtualenvs.create false --local
       - run: poetry install

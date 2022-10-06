@@ -9,20 +9,6 @@ load_dotenv("env_files/postgres_dev.env")
 
 
 @pytest.fixture(scope="session")
-def mongo_client():
-
-    return get_db_connection(
-        "mongodb",
-        dict(
-            host="localhost",
-            username=os.environ.get("MONGO_INITDB_ROOT_USERNAME"),
-            password=os.environ.get("MONGO_INITDB_ROOT_PASSWORD"),
-            port=27019,
-        ),
-    )
-
-
-@pytest.fixture(scope="session")
 def postgres_test_db_conn():
     return get_db_connection(
         "postgresql",

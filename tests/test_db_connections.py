@@ -3,9 +3,9 @@ Make sure we can connect to local test databases for other tests to run properly
 """
 
 
-def test_mongo(mongo_client):
+def test_mongo(local_mongo_client):
     # no errors and initial mongo dbs present
-    assert len(mongo_client.list_database_names()) > 0
+    assert len(local_mongo_client.list_database_names()) > 0
 
 
 def test_postgres(postgres_test_db_conn):
