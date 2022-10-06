@@ -15,14 +15,6 @@ jobs:
 
         # volumes:
         #   - ./init_scripts/postgres/:/docker-entrypoint-initdb.d/
-        steps:
-          - uses: actions/checkout@master
-          - name: copy file
-            uses: canastro/copy-file-action@master
-            with:
-              source: 'init_scripts/postgres/'
-              target: '/docker-entrypoint-initdb.d/'
-
       mongo:
         image: mongo:6.0
         env:
