@@ -23,7 +23,7 @@ jobs:
     #       - 27019:27017
 
     steps:
-      - run: ls -la .
+      - run: ls -la $GITHUB_WORKSPACE.
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
