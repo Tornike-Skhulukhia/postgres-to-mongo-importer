@@ -23,13 +23,13 @@ jobs:
           - 27017:27017
 
     steps:
-      - run: sudo chown -R $USER:$USER /home/runner/work/postgres-to-mongo-importer/
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-        with:
-          python-version: '3.10'
-      - run: curl localhost:27017
-      - run: curl mongo:27019
+      # - run: sudo chown -R $USER:$USER /home/runner/work/postgres-to-mongo-importer/
+      # - uses: actions/checkout@v3
+      # - uses: actions/setup-python@v3
+      #   with:
+      #     python-version: '3.10'
+      # - run: curl localhost:27017
+      # - run: curl mongo:27019
       - run: curl mongo:27017
       # - run: pip install poetry
       # - run: poetry config virtualenvs.create false --local
