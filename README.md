@@ -97,6 +97,22 @@ python3 -m pip install poetry
 poetry install
 ```
 
+# running tests
+
+1. make sure you have docker, docker-compose and make installed
+
+2. run
+
+```bash
+make up
+```
+
+3. when output stops, press CTRL + C and then type
+
+```bash
+make test
+```
+
 # supported Python versions
 
 Developed on 3.10, should also work on earlier versions
