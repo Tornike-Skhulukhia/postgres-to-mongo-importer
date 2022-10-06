@@ -73,13 +73,9 @@ For example:
 Another example output with a bit different supplied flags to do_basic_import function:  
 ![Basic copy example CLI image 2](static/basic_copy_import_image_2.png 'Basic copy example CLI image 2')
 
-If data is really large and network speed is not very high, process may take a looong time.
+If data is really large and network speed is not very high, process may take a looong time, but you can still do some tests with new data in mongodb as it arrives in 1000 row chunks at a time by default.
 
 If something went wrong, follow the output and most probably you will quickly find incorrect credentials errors from pymongo(mongo) or psycopg2(postgres), if it is not the case, please open new issue, or contact me directly.
-
-# later todos
-
-. test & support replicated/sharded clusters
 
 # how it works
 
@@ -116,3 +112,9 @@ make test
 # supported Python versions
 
 Developed on 3.10, should also work on earlier versions
+
+# some thougts for future
+
+. add continuation option (?)
+. add live sync option (?)
+. test & support replicated/sharded clusters
