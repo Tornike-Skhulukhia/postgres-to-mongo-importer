@@ -67,10 +67,10 @@ do_basic_import(
 
 After this you should see info about progress for each table that is being copied to mongo and the total number of them that we found in postgres.
 
-For example:
+For example:  
 ![Basic copy example CLI image 1](static/basic_copy_import_image_1.png 'Basic copy example CLI image 1')
 
-Another example output with a bit different supplied flags to do_basic_import function:
+Another example output with a bit different supplied flags to do_basic_import function:  
 ![Basic copy example CLI image 2](static/basic_copy_import_image_2.png 'Basic copy example CLI image 2')
 
 If data is really large and network speed is not very high, process may take a looong time.
