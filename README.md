@@ -25,9 +25,9 @@ pg_params = dict(
     # port where postgres is running. Make sure port is open and accessible from your PC
     port=5434,
     # user to authenticate
-    user=os.environ.get("POSTGRES_USER"),
+    user="some_postgres_user",
     # password to authenticate
-    password=os.environ.get("POSTGRES_PASSWORD"),
+    password="some_postgres_user_password",
 
     # # optional, if not set, you may not be able to find/copy tables that you need if they
     # # are not in default 'public' schema.
@@ -39,7 +39,7 @@ mongo_params = dict(
     # host where mongodb is running
     host="localhost",
     # and port
-    port=27019,
+    port=27017,
     # username to authenticate | not required if authentication is not needed
     username="john",
     # password to authenticate | not required if authentication is not needed
