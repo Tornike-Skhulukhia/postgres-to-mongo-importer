@@ -12,9 +12,8 @@ jobs:
           POSTGRES_PASSWORD: postgres
         ports:
           - 5434:5432
-
-        # volumes:
-        #   - ./init_scripts/postgres/:/docker-entrypoint-initdb.d/
+        volumes:
+          - /init_scripts/postgres/:/docker-entrypoint-initdb.d/
       mongo:
         image: mongo:6.0
         env:
