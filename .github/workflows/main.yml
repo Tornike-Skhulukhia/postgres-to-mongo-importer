@@ -23,6 +23,7 @@ jobs:
           - 27019:27017
 
     steps:
+      - run: sudo chown -R $USER:$USER /home/github/actions-runner/_work/postgres-to-mongo-importer/
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
