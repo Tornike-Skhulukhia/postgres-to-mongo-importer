@@ -18,8 +18,8 @@ from importer.basic.basic_copy_importer import do_basic_import
 
 # Postgres connection info
 pg_params = dict(
-    # from which database to copy data?
-    database="world",
+    # from which database to copy data? | if database does not exist, you will get error
+    database="some_database",
     # where is Postgres running? example if running on remote server: http://your_server_ip_address_or_domain
     host="localhost",
     # port where postgres is running. Make sure port is open and accessible from your PC
@@ -50,16 +50,16 @@ do_basic_import(
     postgres_params=pg_params,
     mongo_params=mongo_params,
     # which mongodb database to use to save data from postgres
-    destination_db_name_in_mongo="elephant_sql_data",
+    destination_db_name_in_mongo="data_from_postgres_or_some_more_descriptive_name",
     # do you want to clear contents of it before data retrieval starts? default is True,
-    # so make sure it does not exist, or data in it is not useful or is backuped up
+    # so make sure it does not exist, or data in it is not useful or is backed up
     delete_existing_mongo_db=True,
     # optional - if we do not want all tables from given postgres database and schema, list
     # of only some of them can be passed this way
     only_copy_these_tables=["programming_languages"],
-    # if set to True, for each row of postgres data, if it has primary key/keys, this key/keys
+    # optional - if set to True, for each row of postgres data, if it has primary key/keys, this key/keys
     # will be used to create similar field - '_id' in saved mongo data, so mongo will not autocreate
-    # new _id fields for us. default is False.
+    # new _id fields for us and we will save some space. default is False.
     convert_primary_keys_to_mongo_ids=True,
 )
 
