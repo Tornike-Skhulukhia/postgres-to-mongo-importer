@@ -5,15 +5,15 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      # postgres:
-      #   image: postgres:14
-      #   env:
-      #     POSTGRES_USER: postgres
-      #     POSTGRES_PASSWORD: postgres
-      #   ports:
-      #     - 5434:5432
-      #   volumes:
-      #     - /home/runner/work/postgres-to-mongo-importer/postgres-to-mongo-importer/init_scripts/postgres/:/docker-entrypoint-initdb.d/
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5434:5432
+        volumes:
+          - /home/runner/work/postgres-to-mongo-importer/postgres-to-mongo-importer/init_scripts/postgres/:/docker-entrypoint-initdb.d/
       mongo:
         image: mongo:6.0
         env:
