@@ -13,8 +13,7 @@ jobs:
         ports:
           - 5434:5432
         volumes:
-          - {{ $GITHUB_WORKSPACE }}/init_scripts/postgres/:/docker-entrypoint-initdb.d/
-          # - ./init_scripts/postgres/:/docker-entrypoint-initdb.d/
+          - /home/runner/work/postgres-to-mongo-importer/postgres-to-mongo-importer/init_scripts/postgres/:/docker-entrypoint-initdb.d/
       mongo:
         image: mongo:6.0
         env:
@@ -32,7 +31,7 @@ jobs:
       - run: sudo apt install -y tree
       - run: tree $RUNNER_TEMP
       - run: tree $GITHUB_WORKSPACE
-      # - run: pip install poetry
-      # - run: poetry config virtualenvs.create false --local
-      # - run: poetry install
-      # - run: make test
+      - run: pip install poetry
+      - run: poetry config virtualenvs.create false --local
+      - run: poetry install
+      - run: make test
