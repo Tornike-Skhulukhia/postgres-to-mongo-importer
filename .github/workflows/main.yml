@@ -22,13 +22,13 @@ jobs:
         ports:
           - 27019:27017
 
-      steps:
-        - run: sudo chown -R $USER:$USER /home/runner/work/postgres-to-mongo-importer/
-        - uses: actions/checkout@v3
-        - uses: actions/setup-python@v3
-          with:
-            python-version: '3.10'
-        - run: pip install poetry
-        - run: poetry config virtualenvs.create false --local
-        - run: poetry install
-        - run: make test
+    steps:
+      - run: sudo chown -R $USER:$USER /home/runner/work/postgres-to-mongo-importer/
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+      - run: pip install poetry
+      - run: poetry config virtualenvs.create false --local
+      - run: poetry install
+      - run: make test
