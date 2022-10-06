@@ -7,16 +7,18 @@ jobs:
     services:
       postgres:
         image: postgres:14
-        env_file:
-          - ./env_files/postgres_dev.env
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5434:5432
         volumes:
           - ./init_scripts/postgres/:/docker-entrypoint-initdb.d/
       mongo:
         image: mongo:6.0
-        env_file:
-          - ./env_files/mongo_dev.env
+        env:
+          MONGO_INITDB_ROOT_USERNAME: mongodb
+          MONGO_INITDB_ROOT_PASSWORD: mongodb
         ports:
           - 27019:27017
 
