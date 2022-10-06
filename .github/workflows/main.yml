@@ -13,7 +13,7 @@ jobs:
         ports:
           - 5434:5432
         volumes:
-          - {{$GITHUB_WORKSPACE}}/init_scripts/postgres/:/docker-entrypoint-initdb.d/
+          - {{ $GITHUB_WORKSPACE }}/init_scripts/postgres/:/docker-entrypoint-initdb.d/
           # - ./init_scripts/postgres/:/docker-entrypoint-initdb.d/
       mongo:
         image: mongo:6.0
