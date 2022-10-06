@@ -30,9 +30,6 @@ jobs:
           python-version: '3.10'
       - run: PGPASSWORD=postgres psql -U postgres -h localhost -p 5434 -f init_scripts/postgres/postgres_initial_test_script.sql
       - run: PGPASSWORD=postgres psql -U postgres -h localhost -p 5434 -f init_scripts/postgres/world.sql
-      # - run: curl localhost:27019
-      # - run: curl mongo:27019
-      # - run: curl localhost:27017
       - run: pip install poetry
       - run: poetry config virtualenvs.create false --local
       - run: poetry install
