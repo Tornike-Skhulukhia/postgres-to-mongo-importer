@@ -115,6 +115,6 @@ Developed on 3.10, should also work on earlier versions
 
 # some thougts for future
 
-. add continuation option (?)
-. add live sync option (?)
+. add continuation option (?)  
+. add live sync option (?)  
 . test & support replicated/sharded clusters
