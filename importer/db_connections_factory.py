@@ -18,11 +18,11 @@ def get_db_connection(db_name, params):
         # may raise validationerror for not proper args
         params = PostgresConnectionArgsModel(**params).dict()
 
-        client = psycopg2.connect(**params)
+        schema_name = params.pop("schema_name")
 
-        cursor = client.cursor()
+        client = psycopg2.connect(**params, options=f"-c search_path={schema_name}")
 
-        return cursor
+        return client
 
     else:
         raise ValueError("db_name argument must be mongodb or postgresql!")

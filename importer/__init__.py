@@ -1,6 +1,7 @@
 import time
+from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 from rich.console import Console
 
 RICH_CONSOLE = Console()
@@ -18,6 +19,10 @@ class PostgresConnectionArgsModel(BaseModel):
     user: str
     password: str
     port: int
+    schema_name: Optional[str] = "public"
+
+    class Config:
+        extra = Extra.forbid
 
 
 class MongoConnectionArgsModel(BaseModel):
@@ -29,6 +34,9 @@ class MongoConnectionArgsModel(BaseModel):
     username: str
     password: str
     port: int
+
+    class Config:
+        extra = Extra.forbid
 
 
 ###############################

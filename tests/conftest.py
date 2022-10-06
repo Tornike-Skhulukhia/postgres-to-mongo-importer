@@ -23,7 +23,7 @@ def mongo_client():
 
 
 @pytest.fixture(scope="session")
-def postgres_test_db_cursor():
+def postgres_test_db_conn():
     return get_db_connection(
         "postgresql",
         dict(
@@ -38,19 +38,39 @@ def postgres_test_db_cursor():
 
 # params for all postgres testing databases that are already loaded
 @pytest.fixture(scope="session")
-def postgres_world_database_connection_params():
+def local_postgres_world_database_connection_params():
     return dict(
         database="world",
         host="localhost",
         user=os.environ.get("POSTGRES_USER"),
         password=os.environ.get("POSTGRES_PASSWORD"),
         port=5434,
+        # optional - required if database tables are in custom (non public) schema,
+        # if not set, you may not be able to find/copy tables that you need.
+        schema_name="micro_scheme",
     )
 
 
-# to get access to all databases, 1 params is enough
 @pytest.fixture(scope="session")
-def mongo_connection_params():
+def remote_postgres_connection_params():
+    return dict(
+        # sample params for api.elephantsql.com instance
+        host="lucky.db.elephantsql.com",
+        database="orvcbokj",
+        user="orvcbokj",
+        password="Ay08Xjf3_bdyTfjLVZWZpvw0LiiI4nsz",
+        port="5432",
+        # different remote postgres source with real data, but sometimes has some issues...
+        # host="hh-pgsql-public.ebi.ac.uk",
+        # database="pfmegrnargs",
+        # user="reader",
+        # password="NWDMCE5xdipIjRrp",
+        # port="5432",
+    )
+
+
+@pytest.fixture(scope="session")
+def local_mongo_connection_params():
     return dict(
         host="localhost",
         username=os.environ.get("MONGO_INITDB_ROOT_USERNAME"),
@@ -59,16 +79,11 @@ def mongo_connection_params():
     )
 
 
-# @pytest.fixture(scope="session")
-# def postgres_world_data_db_cursor():
-#     client = psycopg2.connect(
-#         database="world",
-#         host="localhost",
-#         user=os.environ.get("POSTGRES_USER"),
-#         password=os.environ.get("POSTGRES_PASSWORD"),
-#         port=5434,
-#     )
+@pytest.fixture(scope="session")
+def local_mongo_client(local_mongo_connection_params):
+    return get_db_connection("mongodb", local_mongo_connection_params)
 
-#     cursor = client.cursor()
 
-#     return cursor
+@pytest.fixture(scope="session")
+def local_pg_client_world_db(local_postgres_world_database_connection_params):
+    return get_db_connection("postgresql", local_postgres_world_database_connection_params)
