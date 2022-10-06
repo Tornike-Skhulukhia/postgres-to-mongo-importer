@@ -31,7 +31,8 @@ jobs:
 
       - run: sudo apt install -y tree
       - run: tree $RUNNER_TEMP
-      - run: pip install poetry
-      - run: poetry config virtualenvs.create false --local
-      - run: poetry install
-      - run: make test
+      - run: tree $GITHUB_WORKSPACE
+      # - run: pip install poetry
+      # - run: poetry config virtualenvs.create false --local
+      # - run: poetry install
+      # - run: make test
