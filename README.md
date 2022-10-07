@@ -55,8 +55,17 @@ do_basic_import(
     # so make sure it does not exist, or data in it is not useful or is backed up
     delete_existing_mongo_db=True,
     # optional - if we do not want all tables from given postgres database and schema, list
-    # of only some of them can be passed this way
-    only_copy_these_tables=["programming_languages"],
+    # or patterns for matching only some of them can be passed this way:
+    tables_to_copy=["planets"], # any string here will be used as regex pattern, so
+                                # in this case table with exact name 'planets' and other tables
+                                # with 'planets' in their names will match, of course if they exist
+                                # in given database and schema.
+    tables_not_to_copy=["user_", "country_"], # opposite of previous argument with similar syntax. here we filter
+                                        # out some tables that matched previously so that
+                                        # we get only tables we want.
+                                        # in this example this way we will not download data for table 'user_planets'.
+                                        # we can set tables_not_to_copy or tables_to_copy separately, both, or None.
+
     # optional - if set to True, for each row of postgres data, if it has primary key/keys, this key/keys
     # will be used to create similar field - '_id' in saved mongo data, so mongo will not autocreate
     # new _id fields for us and we will save some space. default is False.
