@@ -177,8 +177,19 @@ def test_basic_import_flags_work__convert_primary_keys_to_mongo_ids(
 
     assert "countrycode" in id_val and "language" in id_val
 
+    # one more test with non composite _id value
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="country",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=True,
+        tables_to_copy=["country$"],
+    )
+    assert isinstance(local_mongo_client["country"]["country"].find_one({})["_id"], str)
 
-def test_basic_import_flags_work__convert_primary_keys_to_mongo_ids(
+
+def test_basic_import_flags_work__tables_to_copy_tables_not_to_copy(
     local_postgres_world_database_connection_params,
     local_mongo_connection_params,
     local_mongo_client,
@@ -190,7 +201,6 @@ def test_basic_import_flags_work__convert_primary_keys_to_mongo_ids(
         mongo_params=local_mongo_connection_params,
         destination_db_name_in_mongo="world",
         delete_existing_mongo_db=True,
-        convert_primary_keys_to_mongo_ids=False,
         tables_to_copy=["country"],
     )
 
@@ -206,7 +216,6 @@ def test_basic_import_flags_work__convert_primary_keys_to_mongo_ids(
         mongo_params=local_mongo_connection_params,
         destination_db_name_in_mongo="world",
         delete_existing_mongo_db=True,
-        convert_primary_keys_to_mongo_ids=False,
         tables_not_to_copy=["^c"],
     )
 
@@ -218,9 +227,140 @@ def test_basic_import_flags_work__convert_primary_keys_to_mongo_ids(
         mongo_params=local_mongo_connection_params,
         destination_db_name_in_mongo="world",
         delete_existing_mongo_db=True,
-        convert_primary_keys_to_mongo_ids=False,
         tables_to_copy=["country", "city"],
         tables_not_to_copy=["language"],
     )
 
     assert sorted(local_mongo_client.world.list_collection_names()) == ["city", "country"]
+
+
+def test_basic_importer_flags_work__columns_to_copy_columns_not_to_copy(
+    local_postgres_world_database_connection_params,
+    local_mongo_connection_params,
+    local_mongo_client,
+):
+    mongo_col = local_mongo_client["world"]["city"]
+
+    # make sure all fields are present without restricting any column
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="world",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=True,
+        tables_to_copy=["city"],
+    )
+
+    assert sorted(mongo_col.find_one({}).keys()) == [
+        "_id",
+        "countrycode",
+        "district",
+        "name",
+        "population",
+    ]
+
+    # copy only some columns
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="world",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=False,
+        tables_to_copy=["city"],
+        columns_to_copy={
+            "city": ["id", "name", "population"],
+        },
+    )
+
+    assert sorted(mongo_col.find_one({}).keys()) == [
+        "_id",  # this will be automatically added by mongo as we set convert_primary_keys_to_mongo_ids to False
+        "id",
+        "name",
+        "population",
+    ]
+
+    # now we request "id" key but as it is the primary key, we wil download it, but will not save in mongodb
+    # as convert_primary_keys_to_mongo_ids is True, so "id" values will be saved as "_id"
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="world",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=True,
+        tables_to_copy=["city"],
+        columns_to_copy={
+            "city": ["id", "name", "population"],
+        },
+    )
+
+    assert sorted(mongo_col.find_one({}).keys()) == [
+        "_id",
+        # "id",
+        "name",
+        "population",
+    ]
+
+    assert isinstance(mongo_col.find_one({})["_id"], int)
+
+    # lets also test columns_not_to_copy arg
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="world",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=False,
+        tables_to_copy=["city"],
+        columns_not_to_copy={
+            "city": ["name", "population"],
+        },
+    )
+
+    assert sorted(mongo_col.find_one({}).keys()) == [
+        "_id",
+        "countrycode",
+        "district",
+        "id",
+    ]
+
+    assert isinstance(mongo_col.find_one({})["_id"], ObjectId)
+
+    # make sure if we did not asked for primary key, but asked to convert primary keys
+    # to mongo _ids, we still get primary keys downloaded and stored as values for _id
+
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="world",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=True,
+        tables_to_copy=["city"],
+        columns_to_copy={"city": ["name"]},
+    )
+
+    assert sorted(mongo_col.find_one({}).keys()) == ["_id", "name"]
+
+    assert isinstance(mongo_col.find_one({})["_id"], int)  # this integer must come from postgres
+
+    # and use both args
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="world",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=False,
+        tables_to_copy=["country$"],
+        # starts with letter 'g' or ends with digit or contains text "population"
+        columns_to_copy={
+            "country": [r"^g|\d$", "population"],
+        },
+        columns_not_to_copy={
+            "country": ["old"],  # contains text "old" anywhere
+        },
+    )
+    assert sorted(local_mongo_client["world"]["country"].find_one({}).keys()) == [
+        "_id",
+        "code2",
+        "gnp",
+        "governmentform",
+        "population",
+    ]

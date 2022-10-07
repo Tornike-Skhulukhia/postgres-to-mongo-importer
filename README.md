@@ -10,7 +10,8 @@
 
 # examples & howtos
 
-1. To import data from any(local/remote) PostgreSQL database to any (local/remote) MongoDB, pass the appropriate parameters and relax while looking live progress in shell
+1. To import data from any(local/remote) PostgreSQL database to any (local/remote) MongoDB, pass the appropriate parameters and relax while looking live progress in shell.  
+   In the example that follows, most code is comment to explain what can be customized and how, so do not be intimidated by the length of just one function call:
 
 ```python
 
@@ -47,26 +48,47 @@ mongo_params = dict(
 )
 
 do_basic_import(
+    ######################
+    # required arguments
+    ######################
     postgres_params=pg_params,
     mongo_params=mongo_params,
     # which mongodb database to use to save data from postgres
     destination_db_name_in_mongo="data_from_postgres_or_some_more_descriptive_name",
-    # do you want to clear contents of it before data retrieval starts? default is True,
+
+    ######################
+    # optional arguments
+    ######################
+    # do you want to clear contents of mongo datase before data retrieval starts? default is True,
     # so make sure it does not exist, or data in it is not useful or is backed up
     delete_existing_mongo_db=True,
-    # optional - if we do not want all tables from given postgres database and schema, list
+    # if we do not want all tables from given postgres database and schema, list
     # or patterns for matching only some of them can be passed this way:
     tables_to_copy=["planets"], # any string here will be used as regex pattern, so
                                 # in this case table with exact name 'planets' and other tables
-                                # with 'planets' in their names will match, of course if they exist
-                                # in given database and schema.
+                                # with 'planets' in their names will match(ex: 'solar_planets'),
+                                #  of course if they exist in given database and schema.
     tables_not_to_copy=["user_", "country_"], # opposite of previous argument with similar syntax. here we filter
-                                        # out some tables that matched previously so that
-                                        # we get only tables we want.
+                                        # out some tables that matched previously so that  we get only tables we want.
                                         # in this example this way we will not download data for table 'user_planets'.
                                         # we can set tables_not_to_copy or tables_to_copy separately, both, or None.
 
-    # optional - if set to True, for each row of postgres data, if it has primary key/keys, this key/keys
+    columns_to_copy = None, # dictionary with exact table names as keys and column name patterns list as values
+                            # that we want to get. if set to None(default), all columns will be retrieved.
+                            # ex: {"users": ["id", "^name$"] } - will get only column/s that contain "id" in them and
+                            #  + one called "names" exactly, from "users" table.
+    columns_not_to_copy = None,#  dictionary with exact table names as keys and column name patterns list as values
+                            #  that we do not want to get. if set to None(default), all columns will be retrieved.
+
+                            #  ex: {"users": ["id", "^surname$"] } - will not copy columns that contain "id" text in them,
+                            #  or are exactly called "surname", so if we had columns ["id", "parent_id", "surname", "age"]
+                            #  in a database, we will only get "age" field for each record.
+
+                            #  as you probably guessed this patterns mechanism is very similar to tables_to_copy &
+                            #  tables_not_to_copy arguments behaviour, but in this case as we need details about each
+                            #  table, we use dictionary with exact table names as keys and desired patterns as values.
+
+    # if set to True, for each row of postgres data, if it has primary key/keys, this key/keys
     # will be used to create similar field - '_id' in saved mongo data, so mongo will not autocreate
     # new _id fields for us and we will save some space. default is False.
     convert_primary_keys_to_mongo_ids=True,
