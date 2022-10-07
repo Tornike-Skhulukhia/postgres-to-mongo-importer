@@ -8,7 +8,7 @@ def test_basic_local_copy_importer_scenario_1(
     local_postgres_world_database_connection_params,
     local_mongo_connection_params,
     local_mongo_client,
-    local_pg_client_world_db,
+    local_pg_client_with_sample_world_countries_data_loaded,
 ):
 
     do_basic_import(
@@ -32,7 +32,7 @@ def test_basic_local_copy_importer_scenario_1(
         group by countrycode
         order by count(*) desc, countrycode asc
     """
-    with local_pg_client_world_db.cursor() as pg_cursor:
+    with local_pg_client_with_sample_world_countries_data_loaded.cursor() as pg_cursor:
         pg_cursor.execute(pg_query)
         pg_result = [dict(zip(["country", "languages_num"], i)) for i in pg_cursor.fetchall()]
 

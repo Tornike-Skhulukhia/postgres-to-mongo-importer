@@ -11,13 +11,13 @@
 CREATE DATABASE world;
 \c world;
 
-CREATE SCHEMA IF NOT EXISTS micro_scheme;
+CREATE SCHEMA IF NOT EXISTS micro_schema;
 
 BEGIN;
 
 SET client_encoding = 'LATIN1';
 
-CREATE TABLE micro_scheme.city (
+CREATE TABLE micro_schema.city (
     id integer NOT NULL,
     name text NOT NULL,
     countrycode character(3) NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE micro_scheme.city (
     population integer NOT NULL
 );
 
-CREATE TABLE micro_scheme.country (
+CREATE TABLE micro_schema.country (
     code character(3) NOT NULL,
     name text NOT NULL,
     continent text NOT NULL,
@@ -44,14 +44,14 @@ CREATE TABLE micro_scheme.country (
     CONSTRAINT country_continent_check CHECK ((((((((continent = 'Asia'::text) OR (continent = 'Europe'::text)) OR (continent = 'North America'::text)) OR (continent = 'Africa'::text)) OR (continent = 'Oceania'::text)) OR (continent = 'Antarctica'::text)) OR (continent = 'South America'::text)))
 );
 
-CREATE TABLE micro_scheme.countrylanguage (
+CREATE TABLE micro_schema.countrylanguage (
     countrycode character(3) NOT NULL,
     "language" text NOT NULL,
     isofficial boolean NOT NULL,
     percentage real NOT NULL
 );
 
-COPY micro_scheme.city (id, name, countrycode, district, population) FROM stdin;
+COPY micro_schema.city (id, name, countrycode, district, population) FROM stdin;
 1	Kabul	AFG	Kabol	1780000
 2	Qandahar	AFG	Qandahar	237500
 3	Herat	AFG	Herat	186800
@@ -4135,10 +4135,10 @@ COPY micro_scheme.city (id, name, countrycode, district, population) FROM stdin;
 
 
 --
--- Data for Name: country; Type: TABLE micro_scheme.DATA; Schema: public; Owner: chriskl
+-- Data for Name: country; Type: TABLE micro_schema.DATA; Schema: public; Owner: chriskl
 --
 
-COPY micro_scheme.country (code, name, continent, region, surfacearea, indepyear, population, lifeexpectancy, gnp, gnpold, localname, governmentform, headofstate, capital, code2) FROM stdin;
+COPY micro_schema.country (code, name, continent, region, surfacearea, indepyear, population, lifeexpectancy, gnp, gnpold, localname, governmentform, headofstate, capital, code2) FROM stdin;
 AFG	Afghanistan	Asia	Southern and Central Asia	652090	1919	22720000	45.900002	5976.00	\N	Afganistan/Afqanestan	Islamic Emirate	Mohammad Omar	1	AF
 NLD	Netherlands	Europe	Western Europe	41526	1581	15864000	78.300003	371362.00	360478.00	Nederland	Constitutional Monarchy	Beatrix	5	NL
 ANT	Netherlands Antilles	North America	Caribbean	800	\N	217000	74.699997	1941.00	\N	Nederlandse Antillen	Nonmetropolitan Territory of The Netherlands	Beatrix	33	AN
@@ -4382,10 +4382,10 @@ UMI	United States Minor Outlying Islands	Oceania	Micronesia/Caribbean	16	\N	0	\N
 
 
 --
--- Data for Name: countrylanguage; Type: TABLE micro_scheme.DATA; Schema: public; Owner: chriskl
+-- Data for Name: countrylanguage; Type: TABLE micro_schema.DATA; Schema: public; Owner: chriskl
 --
 
-COPY micro_scheme.countrylanguage (countrycode, "language", isofficial, percentage) FROM stdin;
+COPY micro_schema.countrylanguage (countrycode, "language", isofficial, percentage) FROM stdin;
 AFG	Pashto	t	52.400002
 NLD	Dutch	t	95.599998
 ANT	Papiamento	t	86.199997
@@ -5373,23 +5373,23 @@ USA	Portuguese	f	0.2
 \.
 
 
-ALTER TABLE ONLY micro_scheme.city
+ALTER TABLE ONLY micro_schema.city
     ADD CONSTRAINT city_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY micro_scheme.country
+ALTER TABLE ONLY micro_schema.country
     ADD CONSTRAINT country_pkey PRIMARY KEY (code);
 
-ALTER TABLE ONLY micro_scheme.countrylanguage
+ALTER TABLE ONLY micro_schema.countrylanguage
     ADD CONSTRAINT countrylanguage_pkey PRIMARY KEY (countrycode, "language");
 
-ALTER TABLE ONLY micro_scheme.country
-    ADD CONSTRAINT country_capital_fkey FOREIGN KEY (capital) REFERENCES micro_scheme.city(id);
+ALTER TABLE ONLY micro_schema.country
+    ADD CONSTRAINT country_capital_fkey FOREIGN KEY (capital) REFERENCES micro_schema.city(id);
 
-ALTER TABLE ONLY micro_scheme.countrylanguage
-    ADD CONSTRAINT countrylanguage_countrycode_fkey FOREIGN KEY (countrycode) REFERENCES micro_scheme.country(code);
+ALTER TABLE ONLY micro_schema.countrylanguage
+    ADD CONSTRAINT countrylanguage_countrycode_fkey FOREIGN KEY (countrycode) REFERENCES micro_schema.country(code);
 
 COMMIT;
 
-ANALYZE micro_scheme.city;
-ANALYZE micro_scheme.country;
-ANALYZE micro_scheme.countrylanguage;
+ANALYZE micro_schema.city;
+ANALYZE micro_schema.country;
+ANALYZE micro_schema.countrylanguage;

@@ -2,6 +2,10 @@ from importer import RICH_CONSOLE, show_nice_texts_on_process_start_and_end_in_c
 from importer.db_connections_factory import get_db_connection
 from importer.postgres_to_bson_helpers import refine_postgres_doc_for_mongodb
 from rich.progress import Progress
+from importer.basic.postgres_helpers import (
+    _get_pg_database_table_names,
+    _get_pg_database_table_primary_key_columns,
+)
 
 
 def _copy_table_to_mongo(
@@ -15,10 +19,10 @@ def _copy_table_to_mongo(
     fetch_many_num=1000,
 ):
 
-    table_primary_key_columns = _get_pg_table_primary_key_columns(
+    table_primary_key_columns = _get_pg_database_table_primary_key_columns(
         pg_conn=pg_conn,
         table_name=table_name,
-        postgres_schema_name=postgres_schema_name,
+        schema_name=postgres_schema_name,
     )
 
     ### will someone want to sql inject themselves ? :-)
@@ -65,43 +69,6 @@ def _copy_table_to_mongo(
                 next_rows_to_insert = pg_cursor.fetchmany(fetch_many_num)
 
 
-def _get_current_pg_database_table_names(pg_conn, postgres_schema_name):
-    with pg_conn.cursor(name="custom_cursor") as pg_cursor:
-
-        pg_cursor.execute(
-            f"""SELECT table_name FROM information_schema.tables WHERE table_schema = '{postgres_schema_name}'"""
-            # f"""SELECT table_name FROM information_schema.tables;"""
-        )
-
-        return [i[0] for i in pg_cursor.fetchall()]
-
-
-def _get_pg_table_primary_key_columns(pg_conn, table_name, postgres_schema_name):
-    sql = f"""
-    SELECT
-    pg_attribute.attname,
-    format_type(pg_attribute.atttypid, pg_attribute.atttypmod)
-    FROM pg_index, pg_class, pg_attribute, pg_namespace
-    WHERE
-    pg_class.oid = '{table_name}'::regclass AND
-    indrelid = pg_class.oid AND
-    nspname = '{postgres_schema_name}' AND
-    pg_class.relnamespace = pg_namespace.oid AND
-    pg_attribute.attrelid = pg_class.oid AND
-    pg_attribute.attnum = any(pg_index.indkey)
-    AND indisprimary
-    """
-
-    with pg_conn.cursor("custom_cursor") as pg_cursor:
-        pg_cursor.execute(sql)
-
-        pk_columns = [i[0] for i in pg_cursor.fetchall()]
-
-        pg_cursor.close()
-
-        return pk_columns
-
-
 @show_nice_texts_on_process_start_and_end_in_cli
 def do_basic_import(
     postgres_params,
@@ -141,9 +108,7 @@ def do_basic_import(
     # allows access to specific database, given in postgres_params as "database" key
     pg_conn = get_db_connection("postgresql", postgres_params)
 
-    table_names = _get_current_pg_database_table_names(
-        pg_conn=pg_conn, postgres_schema_name=postgres_schema_name
-    )
+    table_names = _get_pg_database_table_names(pg_conn=pg_conn, schema_name=postgres_schema_name)
 
     # if not all tables are needed to copy
     if only_copy_these_tables:

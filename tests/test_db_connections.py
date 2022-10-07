@@ -8,9 +8,9 @@ def test_mongo(local_mongo_client):
     assert len(local_mongo_client.list_database_names()) > 0
 
 
-def test_postgres(postgres_test_db_conn):
+def test_postgres(local_pg_client_with_sample_test_data_loaded):
     # no errors
-    with postgres_test_db_conn.cursor() as pg_cursor:
+    with local_pg_client_with_sample_test_data_loaded.cursor() as pg_cursor:
         pg_cursor.execute(
             "select * from test_table;",
         )
