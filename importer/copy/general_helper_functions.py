@@ -14,7 +14,7 @@ def _only_leave_items_that_match_the_patterns(
     Step will be skipped if patterns variable is None(default).
 
     pattern can be normal string or raw string. If you are using special characters,
-    like \ in regex/pattern, make sure to use two of them instead of one or use a raw string r'\'
+    like \\ in regex/pattern (single slash), make sure to use two of them instead of one or use a raw string r'\'
 
     For a few examples see test_only_leave_items_that_match_the_patterns function in tests.
 

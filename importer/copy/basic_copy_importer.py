@@ -2,7 +2,7 @@ from importer import RICH_CONSOLE, show_nice_texts_on_process_start_and_end_in_c
 from importer.db_connections_factory import get_db_connection
 from importer.postgres_to_bson_helpers import refine_postgres_doc_for_mongodb
 from rich.progress import Progress
-from importer.basic.postgres_helpers import (
+from importer.copy.postgres_helpers import (
     _get_pg_database_table_names,
     _get_pg_database_table_primary_key_columns,
 )

@@ -1,4 +1,4 @@
-from importer.basic.postgres_helpers import (
+from importer.copy.postgres_helpers import (
     _get_pg_database_table_names,
     _get_pg_database_table_primary_key_columns,
 )

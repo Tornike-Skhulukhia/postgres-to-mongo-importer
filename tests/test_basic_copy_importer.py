@@ -1,6 +1,6 @@
 import pytest
 from bson import ObjectId
-from importer.basic.basic_copy_importer import do_basic_import
+from importer.copy.basic_copy_importer import do_basic_import
 
 
 # @pytest.mark.skip

@@ -15,7 +15,7 @@
 
 ```python
 
-from importer.basic.basic_copy_importer import do_basic_import
+from importer.copy.basic_copy_importer import do_basic_import
 
 # Postgres connection info
 pg_params = dict(

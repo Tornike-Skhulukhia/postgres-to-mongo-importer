@@ -25,6 +25,29 @@ def _convert_python_decimals_to_bson_decimal128(dict_item):
     return dict_item
 
 
+def _convert_bson_decimal128_to_strs(dict_item):
+    """
+    This function iterates a dictionary looking for types of Decimal and converts them to Decimal128
+    Embedded dictionaries and lists are called recursively.
+
+    source: https://stackoverflow.com/questions/61456784/pymongo-cannot-encode-object-of-type-decimal-decimal
+    """
+
+    if dict_item is None:
+        return None
+
+    for k, v in list(dict_item.items()):
+        if isinstance(v, dict):
+            _convert_python_decimals_to_bson_decimal128(v)
+        elif isinstance(v, list):
+            for l in v:
+                _convert_python_decimals_to_bson_decimal128(l)
+        elif isinstance(v, Decimal128):
+            dict_item[k] = str(v)
+
+    return dict_item
+
+
 def _reshape_doc_to_make_sure_postgres_primary_keys_will_be_primary_keys_in_mongo(doc, pk_columns):
     """
     In doc, we have just basic dictionary of PostgreSQL data in { column_1 : value_1,  } format
