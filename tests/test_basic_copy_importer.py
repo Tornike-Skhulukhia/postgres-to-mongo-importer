@@ -82,7 +82,7 @@ def test_import_from_remote_postgres_works(
         mongo_params=local_mongo_connection_params,
         destination_db_name_in_mongo="elephant_sql_data",
         delete_existing_mongo_db=True,
-        only_copy_these_tables=["programming_languages"],
+        tables_to_copy=["programming_languages"],
     )
 
     mongo_client = local_mongo_client["elephant_sql_data"]
@@ -100,6 +100,7 @@ def test_import_from_remote_postgres_works(
 
 
 def test_do_basic_import_flags(
+    local_postgres_world_database_connection_params,
     remote_postgres_connection_params,
     local_mongo_connection_params,
     local_mongo_client,
@@ -112,7 +113,7 @@ def test_do_basic_import_flags(
         mongo_params=local_mongo_connection_params,
         destination_db_name_in_mongo="elephant_sql_data",
         delete_existing_mongo_db=True,
-        only_copy_these_tables=["programming_languages"],
+        tables_to_copy=["programming_languages"],
     )
 
     assert programming_langs_col.count_documents({}) == 3
@@ -123,7 +124,7 @@ def test_do_basic_import_flags(
         mongo_params=local_mongo_connection_params,
         destination_db_name_in_mongo="elephant_sql_data",
         delete_existing_mongo_db=False,
-        only_copy_these_tables=["programming_languages"],
+        tables_to_copy=["programming_languages"],
     )
 
     assert programming_langs_col.count_documents({}) == 6
@@ -138,12 +139,12 @@ def test_do_basic_import_flags(
         destination_db_name_in_mongo="elephant_sql_data",
         delete_existing_mongo_db=True,
         convert_primary_keys_to_mongo_ids=True,
-        only_copy_these_tables=["programming_languages"],
+        tables_to_copy=["programming_languages"],
     )
     # but now they are integers from Postgres
     assert isinstance(programming_langs_col.find_one({})["_id"], int)
 
-    # make sure only_copy_these_tables works
+    # make sure tables_to_copy works
     ## initially it has just 1 table as we asked above
     assert local_mongo_client["elephant_sql_data"].list_collection_names() == [
         "programming_languages"
@@ -162,3 +163,44 @@ def test_do_basic_import_flags(
         "pg_stat_statements",
         "programming_languages",
     ]
+
+    # make sure tables_to_copy and tables_not_to_copy work as expected
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="world",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=False,
+        tables_to_copy=["country"],
+    )
+
+    # as country is interpreted as regex, countrylanguage table should also match
+    assert sorted(local_mongo_client.world.list_collection_names()) == [
+        "country",
+        "countrylanguage",
+    ]
+
+    # all table names start with 'c', so skip all
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="world",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=False,
+        tables_not_to_copy=["^c"],
+    )
+
+    assert sorted(local_mongo_client.world.list_collection_names()) == []
+
+    # copy tables with country or city in names and not language in name
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="world",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=False,
+        tables_to_copy=["country", "city"],
+        tables_not_to_copy=["language"],
+    )
+
+    assert sorted(local_mongo_client.world.list_collection_names()) == ["city", "country"]

@@ -77,6 +77,8 @@ If data is really large and network speed is not very high, process may take a l
 
 If something went wrong, follow the output and most probably you will quickly find incorrect credentials errors from pymongo(mongo) or psycopg2(postgres), if it is not the case, please open new issue, or contact me directly.
 
+If something is not clear about arguments/functions, please open tests folder and look at argument/function that you want to see more examples for.
+
 # how it works
 
 # installation

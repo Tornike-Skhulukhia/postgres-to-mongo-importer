@@ -6,6 +6,7 @@ from importer.basic.postgres_helpers import (
     _get_pg_database_table_names,
     _get_pg_database_table_primary_key_columns,
 )
+from .general_helper_functions import _only_leave_items_that_match_the_patterns
 
 
 def _copy_table_to_mongo(
@@ -75,7 +76,8 @@ def do_basic_import(
     mongo_params,
     destination_db_name_in_mongo,
     delete_existing_mongo_db=True,
-    only_copy_these_tables=False,
+    tables_to_copy=None,
+    tables_not_to_copy=None,
     convert_primary_keys_to_mongo_ids=False,
 ):
     """
@@ -94,10 +96,22 @@ def do_basic_import(
         4. delete_existing_mongo_db - do we want to delete existing MongoDB database with all its collections or not?
                                     default=True.
 
-        5. only_copy_these_tables - list of table names that we want to copy, or False(default - copies everything).
-                                    if provided, sequence of table downloads will follow this list order.
+        5. tables_to_copy - list of strings or regex patterns of table names that we want to copy.
+                                if set to None(default) - all tables will match.
 
-        6. convert_primary_keys_to_mongo_ids - if set to True(default=False), postgresql table primary keys will
+                                For example, if you have tables named 'customers' and 'customer_orders'
+                                and set this parameter to ["customer"], both tables will match as string is
+                                interpreted as regex, to match only first table name you can use ["customers"] or ["^customers$"].
+
+        6. tables_not_to_copy - list of strings or regex patterns of table names that we want to skip/not copy.
+                                if set to None(default) - no tables will be filtered out.
+
+                                For example, if you have tables named 'customers' and 'customer_orders'
+                                and set this parameter to ["customer"], both tables will match as string is
+                                interpreted as regex, so no data will be downloaded at all. To only filter out first
+                                table, you can try ["customers"] or ["^customers$"] here.
+
+        7. convert_primary_keys_to_mongo_ids - if set to True(default=False), postgresql table primary keys will
                                         be used as object ids(primary keys) in mongodb.
     """
     postgres_schema_name = postgres_params.get("schema_name", "public")
@@ -110,16 +124,16 @@ def do_basic_import(
 
     table_names = _get_pg_database_table_names(pg_conn=pg_conn, schema_name=postgres_schema_name)
 
-    # if not all tables are needed to copy
-    if only_copy_these_tables:
-        existing_table_names_set = set(table_names)
+    RICH_CONSOLE.print(
+        f". Found total of {len(table_names)} tables in postgres database "
+        f"{postgres_params['database']} and schema '{postgres_schema_name}' 🎯",
+        style="bold blue",
+    )
 
-        table_names = [i for i in only_copy_these_tables if i in existing_table_names_set]
-
-        RICH_CONSOLE.print(
-            f". from provided table names list found {len(table_names)} tables in postgres 🎯",
-            style="bold blue",
-        )
+    # which tables does user want to copy/import ?
+    table_names = _only_leave_items_that_match_the_patterns(
+        table_names, leave_patterns=tables_to_copy, remove_patterns=tables_not_to_copy
+    )
 
     # delete existing mongodb database data?
     if delete_existing_mongo_db:
@@ -129,6 +143,13 @@ def do_basic_import(
         )
         mongo_conn.drop_database(destination_db_name_in_mongo)
 
+    if len(table_names) == 0:
+        RICH_CONSOLE.print(
+            f". No tables matched to given arguments/filters ⛔",
+            style="bold red",
+        )
+        return
+
     # use existing primary keys also in MongoDB?
     if convert_primary_keys_to_mongo_ids:
         RICH_CONSOLE.print(
@@ -137,8 +158,8 @@ def do_basic_import(
         )
 
     RICH_CONSOLE.print(
-        f". Starting to copy {len(table_names)} tables from schema '{postgres_schema_name}' to MongoDB "
-        f"from database '{postgres_params['database']}' 🔥\n",
+        f". from all available tables, {len(table_names)} matched to given parameters, "
+        f"starting to download them in mongo as collections in '{destination_db_name_in_mongo}' database 🔥\n",
         style="bold blue",
     )
 
