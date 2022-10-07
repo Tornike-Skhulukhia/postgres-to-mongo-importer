@@ -8,7 +8,9 @@ load_dotenv("env_files/mongo_dev.env")
 load_dotenv("env_files/postgres_dev.env")
 
 
-# params for all postgres testing databases that are already loaded
+##################################################
+# local PostgreSQL sample world database
+##################################################
 @pytest.fixture(scope="session")
 def local_postgres_world_database_connection_params():
     return dict(
@@ -23,6 +25,19 @@ def local_postgres_world_database_connection_params():
     )
 
 
+@pytest.fixture(scope="session")
+def local_pg_client_with_sample_world_countries_data_loaded(
+    local_postgres_world_database_connection_params,
+):
+    return get_db_connection(
+        "postgresql",
+        local_postgres_world_database_connection_params,
+    )
+
+
+##################################################
+# remote ElephantSQL postgres database
+##################################################
 @pytest.fixture(scope="session")
 def remote_postgres_connection_params():
     return dict(
@@ -41,18 +56,32 @@ def remote_postgres_connection_params():
     )
 
 
+##################################################
+# local PostgreSQL sample test database
+##################################################
 @pytest.fixture(scope="session")
-def local_pg_client_with_sample_test_data_loaded():
+def local_test_db_postgres_connection_params():
+    return dict(
+        database="test_db",
+        host="localhost",
+        user=os.environ.get("POSTGRES_USER"),
+        password=os.environ.get("POSTGRES_PASSWORD"),
+        port=5434,
+    )
+
+
+@pytest.fixture(scope="session")
+def local_pg_client_with_sample_test_data_loaded(local_test_db_postgres_connection_params):
+
     return get_db_connection(
         "postgresql",
-        dict(
-            database="test_db",
-            host="localhost",
-            user=os.environ.get("POSTGRES_USER"),
-            password=os.environ.get("POSTGRES_PASSWORD"),
-            port=5434,
-        ),
+        local_test_db_postgres_connection_params,
     )
+
+
+##################################################
+# local MongoDB
+##################################################
 
 
 @pytest.fixture(scope="session")
@@ -67,11 +96,7 @@ def local_mongo_connection_params():
 
 @pytest.fixture(scope="session")
 def local_mongo_client(local_mongo_connection_params):
-    return get_db_connection("mongodb", local_mongo_connection_params)
-
-
-@pytest.fixture(scope="session")
-def local_pg_client_with_sample_world_countries_data_loaded(
-    local_postgres_world_database_connection_params,
-):
-    return get_db_connection("postgresql", local_postgres_world_database_connection_params)
+    return get_db_connection(
+        "mongodb",
+        local_mongo_connection_params,
+    )

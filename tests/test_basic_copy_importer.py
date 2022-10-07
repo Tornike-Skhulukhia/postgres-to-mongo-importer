@@ -99,70 +99,90 @@ def test_import_from_remote_postgres_works(
     ]
 
 
-def test_do_basic_import_flags(
-    local_postgres_world_database_connection_params,
-    remote_postgres_connection_params,
+def test_basic_import_flags_work__delete_existing_mongo_db(
+    local_test_db_postgres_connection_params,
     local_mongo_connection_params,
     local_mongo_client,
 ):
-    programming_langs_col = local_mongo_client["elephant_sql_data"]["programming_languages"]
+    mongo_col = local_mongo_client["test_db"]["test_table"]
 
     # if imported with delete_existing_mongo_db as True, only 3 records must be found
     do_basic_import(
-        postgres_params=remote_postgres_connection_params,
+        postgres_params=local_test_db_postgres_connection_params,
         mongo_params=local_mongo_connection_params,
-        destination_db_name_in_mongo="elephant_sql_data",
+        destination_db_name_in_mongo="test_db",
         delete_existing_mongo_db=True,
-        tables_to_copy=["programming_languages"],
+        tables_to_copy=["test_table"],
     )
 
-    assert programming_langs_col.count_documents({}) == 3
+    assert mongo_col.count_documents({}) == 3
 
     # after same operation without clearing database, records must be 6
     do_basic_import(
-        postgres_params=remote_postgres_connection_params,
+        postgres_params=local_test_db_postgres_connection_params,
         mongo_params=local_mongo_connection_params,
-        destination_db_name_in_mongo="elephant_sql_data",
+        destination_db_name_in_mongo="test_db",
         delete_existing_mongo_db=False,
-        tables_to_copy=["programming_languages"],
+        tables_to_copy=["test_table"],
     )
 
-    assert programming_langs_col.count_documents({}) == 6
+    assert mongo_col.count_documents({}) == 6
+
+    # but if cleared, next time it will be 3
+    do_basic_import(
+        postgres_params=local_test_db_postgres_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="test_db",
+        delete_existing_mongo_db=True,
+        tables_to_copy=["test_table"],
+    )
+
+    assert mongo_col.count_documents({}) == 3
+
+
+def test_basic_import_flags_work__convert_primary_keys_to_mongo_ids(
+    local_postgres_world_database_connection_params,
+    local_mongo_connection_params,
+    local_mongo_client,
+):
+    mongo_col = local_mongo_client["countrylanguage"]["countrylanguage"]
+
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="countrylanguage",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=False,
+        tables_to_copy=["countrylanguage"],
+    )
+
+    # make sure mongo generated _id fields for us
+    assert isinstance(mongo_col.find_one({})["_id"], ObjectId)
+
+    do_basic_import(
+        postgres_params=local_postgres_world_database_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="countrylanguage",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=True,
+        tables_to_copy=["countrylanguage"],
+    )
 
     # make sure primary key columns are correctly translated into mongodb _id fields
-    ## initially they are ObjectIds
-    assert isinstance(programming_langs_col.find_one({})["_id"], ObjectId)
+    id_val = mongo_col.find_one({})["_id"]
 
-    do_basic_import(
-        postgres_params=remote_postgres_connection_params,
-        mongo_params=local_mongo_connection_params,
-        destination_db_name_in_mongo="elephant_sql_data",
-        delete_existing_mongo_db=True,
-        convert_primary_keys_to_mongo_ids=True,
-        tables_to_copy=["programming_languages"],
-    )
-    # but now they are integers from Postgres
-    assert isinstance(programming_langs_col.find_one({})["_id"], int)
+    # in this case actually composite key must be created, so
+    # object should be saved as _id value
+    assert isinstance(id_val, dict)
 
-    # make sure tables_to_copy works
-    ## initially it has just 1 table as we asked above
-    assert local_mongo_client["elephant_sql_data"].list_collection_names() == [
-        "programming_languages"
-    ]
+    assert "countrycode" in id_val and "language" in id_val
 
-    # but we can get more(currently there is 1 more)
-    do_basic_import(
-        postgres_params=remote_postgres_connection_params,
-        mongo_params=local_mongo_connection_params,
-        destination_db_name_in_mongo="elephant_sql_data",
-        delete_existing_mongo_db=True,
-        convert_primary_keys_to_mongo_ids=True,
-    )
 
-    assert sorted(local_mongo_client["elephant_sql_data"].list_collection_names()) == [
-        "pg_stat_statements",
-        "programming_languages",
-    ]
+def test_basic_import_flags_work__convert_primary_keys_to_mongo_ids(
+    local_postgres_world_database_connection_params,
+    local_mongo_connection_params,
+    local_mongo_client,
+):
 
     # make sure tables_to_copy and tables_not_to_copy work as expected
     do_basic_import(
