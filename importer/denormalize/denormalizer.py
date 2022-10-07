@@ -36,7 +36,7 @@ def _draw_before_and_after_example_docs_on_screen_side_by_side(doc_1, doc_2, fie
             json.dumps(
                 _convert_bson_decimal128_to_strs(doc_1),
                 indent=2,
-            ).replace(f'"{field_1}"', f'[red]"{field_1}"[/red]'),
+            ).replace(f'"{field_1}"', f'[bold red]"{field_1}"[/bold red]'),
         )
     )
 
@@ -45,7 +45,7 @@ def _draw_before_and_after_example_docs_on_screen_side_by_side(doc_1, doc_2, fie
             json.dumps(
                 _convert_bson_decimal128_to_strs(doc_2),
                 indent=2,
-            ).replace(f'"{field_2}"', f'[red]"{field_2}"[/red]'),
+            ).replace(f'"{field_2}"', f'[bold red]"{field_2}"[/bold red]'),
         )
     )
 
@@ -60,8 +60,10 @@ def denormalize_mongo(
     field_name,
     other_field_name,
     new_field_name,
-    as_list=True,
+    as_array=True,
+    delete_source_field_name_after_lookup=False,
     delete_other_collection=False,
+    do_not_copy_fields=None,
 ):
     """ """
 
@@ -119,21 +121,43 @@ def denormalize_mongo(
         },
     ]
 
-    if as_list:
+    if as_array:
         del pipeline[-2]
+
+    # add validation, so that we can not save just {}-s if removed all fields (?)
+    if do_not_copy_fields and isinstance(do_not_copy_fields, list):
+        pipeline.insert(-1, {"$unset": [f"{new_field_name}.{i}" for i in do_not_copy_fields]})
 
     _doc_before = mongo_client[database][collection].find_one()
 
     # Lets do it!
     agg_result = list(mongo_client[database][collection].aggregate(pipeline))
 
-    _doc_after = mongo_client[database][collection].find_one()
+    if delete_source_field_name_after_lookup:
+
+        if field_name == new_field_name:
+            raise ValueError(
+                f"field_name and new_field_name are same ({field_name})",
+                f"deleting newly added data is not probably what you want!",
+            )
+
+        # new_expected_type = [] if as_array else {}
+        new_expected_type = "array" if as_array else "object"
+
+        update_result = mongo_client[database][collection].update_many(
+            {
+                new_field_name: {
+                    "$type": new_expected_type,
+                }
+            },
+            {"$unset": {field_name: ""}},
+        )
 
     # show before and after docs after pipeline runs to make visual comparison faster
     # in the CLI (maybe we should not show all fields if there are a lot in 1 doc)
     _draw_before_and_after_example_docs_on_screen_side_by_side(
         _doc_before,
-        _doc_after,
+        mongo_client[database][collection].find_one(),
         field_name,
         new_field_name,
     )
