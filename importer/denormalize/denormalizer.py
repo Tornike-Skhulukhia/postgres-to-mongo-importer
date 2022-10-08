@@ -54,6 +54,7 @@ def _draw_before_and_after_example_docs_on_screen_side_by_side(
             json.dumps(
                 _convert_bson_decimal128_to_strs(doc_1),
                 indent=4,
+                ensure_ascii=False,
             ).replace(f'"{field_name}"', f'[bold red]"{field_name}"[/bold red]'),
         )
     )
@@ -63,6 +64,7 @@ def _draw_before_and_after_example_docs_on_screen_side_by_side(
             json.dumps(
                 _convert_bson_decimal128_to_strs(doc_2),
                 indent=4,
+                ensure_ascii=False,
             ).replace(f'"{new_field_name}"', f'[bold red]"{new_field_name}"[/bold red]'),
         )
     )
@@ -72,6 +74,7 @@ def _draw_before_and_after_example_docs_on_screen_side_by_side(
             json.dumps(
                 _convert_bson_decimal128_to_strs(doc_3),
                 indent=4,
+                ensure_ascii=False,
             ).replace(f'"{other_field_name}"', f'[bold red]"{other_field_name}"[/bold red]'),
         )
     )
