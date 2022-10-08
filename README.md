@@ -236,6 +236,7 @@ This exact example is implemented and tested in test_mongo_denormalizer\_\_skip_
 #### If something is not clear about arguments/functions, please look at tests or function code/docs.
 
 # Installation
+0. download this repository
 
 1. install poetry
 
