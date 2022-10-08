@@ -15,6 +15,12 @@
 
 # Examples & howtos
 
+This is the absolute minimum that you need to start downloading data ( example_starting_file.py )
+
+![Example file image](static/example_starting_file_img.png)
+
+You can open, modify parameters and run it as you want, but for detailed explanations and examples, continue reading.
+
 ## 1. data import example from PostgreSQL to MongoDB
 
 To import data from any(local/remote) PostgreSQL database to any (local/remote) MongoDB, pass the appropriate parameters and relax while looking live progress in shell.
