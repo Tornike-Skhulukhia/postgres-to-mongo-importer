@@ -1,3 +1,4 @@
+from importer.copy.basic_copy_importer import do_basic_import
 from importer.denormalize.denormalizer import denormalize_mongo
 
 # we need these as sometimes we may have field that has null value
@@ -156,7 +157,7 @@ def test_mongo_denormalizer__skip_fields(
         collection="country",
         other_collection="city",
         field_name="capital",
-        other_field_name="_id",  # not "id", but "_id" as we used auto key transfer from postgres to mongo option
+        other_field_name="_id",  # not "id", but "_rid" as we used auto key transfer from postgres to mongo option
         new_field_name="the_capitals",
         as_array=True,
         delete_source_field_name_after_lookup=True,
@@ -178,3 +179,103 @@ def test_mongo_denormalizer__skip_fields(
         "name",
         "population",
     ]
+
+
+def test_denormalizer_using_rivers_example_from_readme(
+    local_rivers_db_postgres_connection_params,
+    local_mongo_connection_params,
+    local_mongo_client,
+):
+    do_basic_import(
+        postgres_params=local_rivers_db_postgres_connection_params,
+        mongo_params=local_mongo_connection_params,
+        destination_db_name_in_mongo="rivers_db",
+        delete_existing_mongo_db=True,
+        convert_primary_keys_to_mongo_ids=True,
+    )
+
+    assert sorted(local_mongo_client["rivers_db"].list_collection_names()) == [
+        "capital_cities",
+        "countries",
+        "countries_rivers",
+        "rivers",
+    ]
+
+    # move specific river info to countries_rivers and delete rivers table
+    denormalize_mongo(
+        mongo_client=local_mongo_client,
+        database="rivers_db",
+        collection="countries_rivers",
+        other_collection="rivers",
+        field_name="river_id",
+        other_field_name="_id",
+        new_field_name="river",
+        as_array=False,
+        delete_source_field_name_after_lookup=True,
+        delete_other_collection=True,
+    )
+
+    doc = local_mongo_client["rivers_db"]["countries_rivers"].find_one()
+
+    assert "river" in doc and "river_id" not in doc
+
+    assert isinstance(doc["river"], dict)
+    assert sorted((doc["river"].keys())) == ["_id", "length", "name"]
+
+    assert "rivers" not in local_mongo_client["rivers_db"].list_collection_names()
+
+    # move countries_rivers info to countries directly as a list/array
+    denormalize_mongo(
+        mongo_client=local_mongo_client,
+        database="rivers_db",
+        collection="countries",
+        other_collection="countries_rivers",
+        field_name="_id",
+        other_field_name="country_code",
+        new_field_name="rivers",
+        as_array=True,
+        delete_source_field_name_after_lookup=False,
+        delete_other_collection=True,
+        leave_only_this_key_values_in_array="river",
+        # do_not_copy_fields=["_id"],
+    )
+
+    # make sure Canada has 2 rivers
+    doc = local_mongo_client["rivers_db"].countries.find_one({"_id": "CAN"})
+
+    assert len(doc["rivers"]) == 2
+    assert sorted(doc["rivers"][0].keys()) == ["_id", "length", "name"]
+    assert doc["rivers"][0]["name"] == "Mississippi"
+    assert doc["rivers"][1]["name"] == "Mackenzie"
+
+    # add cities info directly to countries
+    denormalize_mongo(
+        mongo_client=local_mongo_client,
+        database="rivers_db",
+        collection="countries",
+        other_collection="capital_cities",
+        field_name="capital_id",
+        other_field_name="_id",
+        new_field_name="capital",
+        as_array=False,
+        delete_source_field_name_after_lookup=True,
+        delete_other_collection=True,
+        do_not_copy_fields=["_id"],
+    )
+
+    doc = local_mongo_client["rivers_db"].countries.find_one({"_id": "CHN"})
+
+    assert sorted(doc.keys()) == [
+        "_id",
+        "capital",
+        "continent",
+        "name",
+        "rivers",
+    ]
+
+    assert sorted(doc["capital"].keys()) == ["name", "population"]
+
+    assert doc["capital"]["name"] == "Beijing"
+    assert doc["capital"]["population"] == 7472000
+
+    breakpoint()

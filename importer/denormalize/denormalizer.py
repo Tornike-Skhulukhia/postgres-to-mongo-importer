@@ -9,43 +9,70 @@ from rich.layout import Layout
 from importer.postgres_to_bson_helpers import _convert_bson_decimal128_to_strs
 
 
-def _draw_before_and_after_example_docs_on_screen_side_by_side(doc_1, doc_2, field_1, field_2):
+def _draw_before_and_after_example_docs_on_screen_side_by_side(
+    doc_1,
+    doc_2,
+    doc_3,
+    field_name,
+    new_field_name,
+    other_field_name,
+    collection,
+    other_collection,
+):
     print()
     layout = Layout()
 
     layout.split_column(
-        Layout(name="upper", ratio=1),
-        Layout(name="lower", ratio=3),
+        Layout(name="upper", size=2),
+        Layout(name="lower", ratio=10),
     )
 
     layout["lower"].split_row(
         Layout(name="left"),
+        Layout(name="middle"),
         Layout(name="right"),
     )
 
-    layout["upper"].update(
-        Align.center(
-            "Sample documents before and after denormalization",
-            vertical="middle",
-            style="bold blue",
-        )
+    layout["upper"].split_row(
+        Layout(name="left_title"),
+        Layout(name="middle_title"),
+        Layout(name="right_title"),
+    )
+
+    layout["left_title"].update(
+        Align.center(f"Sample from '{collection}' before update", style="bold blue")
+    )
+    layout["middle_title"].update(
+        Align.center(f"Sample from '{collection}' after update", style="bold blue")
+    )
+    layout["right_title"].update(
+        Align.center(f"Sample from '{other_collection}'", style="bold blue")
     )
 
     layout["left"].update(
         Align.center(
             json.dumps(
                 _convert_bson_decimal128_to_strs(doc_1),
-                indent=2,
-            ).replace(f'"{field_1}"', f'[bold red]"{field_1}"[/bold red]'),
+                indent=4,
+            ).replace(f'"{field_name}"', f'[bold red]"{field_name}"[/bold red]'),
+        )
+    )
+
+    layout["middle"].update(
+        Align.center(
+            json.dumps(
+                _convert_bson_decimal128_to_strs(doc_2),
+                indent=4,
+            ).replace(f'"{new_field_name}"', f'[bold red]"{new_field_name}"[/bold red]'),
         )
     )
 
     layout["right"].update(
         Align.center(
             json.dumps(
-                _convert_bson_decimal128_to_strs(doc_2),
-                indent=2,
-            ).replace(f'"{field_2}"', f'[bold red]"{field_2}"[/bold red]'),
+                _convert_bson_decimal128_to_strs(doc_3),
+                indent=4,
+            ).replace(f'"{other_field_name}"', f'[bold red]"{other_field_name}"[/bold red]'),
         )
     )
 
@@ -65,6 +92,7 @@ def denormalize_mongo(
     delete_source_field_name_after_lookup=False,
     delete_other_collection=False,
     do_not_copy_fields=None,
+    leave_only_this_key_values_in_array=False,
 ):
     """
     This is mainly the simple wrapper around MongoDB's $lookup and $merge aggregation stages to make
@@ -91,6 +119,38 @@ def denormalize_mongo(
         9. delete_source_field_name_after_lookup - if set to True (default is False), source field will be deleted
         10. delete_other_collection - if set to True, other collection will be deleted after operation succedes
         11. do_not_copy_fields - list of fields that we do not want to get/store using lookup/join
+        12. leave_only_this_key_values_in_array - set to some field value if you want to save only specific field values
+                                                in array, not full documents, for example, you may have result like
+                                                this without setting this flag:
+                                                    {
+                                                        ...
+                                                        rivers: [
+                                                            {
+                                                                river: {
+                                                                    id: 1,
+                                                                    name: "Yellow River",
+                                                                    length: 100,
+                                                                }
+                                                            },
+                                                            ...
+                                                        ]
+                                                    ]
+                                                if you do not need extra river key as we already know it is a river
+                                                because values are in a list of 'rivers' key, we can set
+                                                leave_only_this_key_values_in_array to "river" and get this instead:
+                                                    {
+                                                        ...
+                                                        rivers: [
+                                                            {
+
+                                                                id: 1,
+                                                                name: "Yellow River",
+                                                                length: 100,
+                                                            },
+                                                            ...
+                                                        ]
+                                                    ]
+
 
     example:
         lets say we have 2 collections - 'countries' and 'cities' in mongo database named 'countries_database'
@@ -205,11 +265,25 @@ def denormalize_mongo(
     if as_array:
         del pipeline[-2]
 
+        if leave_only_this_key_values_in_array:
+            pipeline.insert(
+                -1,
+                {
+                    "$replaceRoot": {
+                        "newRoot": {
+                            "_id": "$_id",
+                            new_field_name: f"${new_field_name}.{leave_only_this_key_values_in_array}",
+                        }
+                    }
+                },
+            )
+
     # add validation, so that we can not save just {}-s if removed all fields (?)
     if do_not_copy_fields and isinstance(do_not_copy_fields, list):
         pipeline.insert(-1, {"$unset": [f"{new_field_name}.{i}" for i in do_not_copy_fields]})
 
     _doc_before = mongo_client[database][collection].find_one()
+    _other_doc_before = mongo_client[database][other_collection].find_one()
 
     # Lets do it!
     agg_result = list(mongo_client[database][collection].aggregate(pipeline))
@@ -237,10 +311,14 @@ def denormalize_mongo(
     # show before and after docs after pipeline runs to make visual comparison faster
     # in the CLI (maybe we should not show all fields if there are a lot in 1 doc)
     _draw_before_and_after_example_docs_on_screen_side_by_side(
-        _doc_before,
-        mongo_client[database][collection].find_one(),
-        field_name,
-        new_field_name,
+        doc_1=_doc_before,
+        doc_2=mongo_client[database][collection].find_one(),
+        doc_3=_other_doc_before,
+        field_name=field_name,
+        new_field_name=new_field_name,
+        other_field_name=other_field_name,
+        collection=collection,
+        other_collection=other_collection,
     )
 
     if delete_other_collection:

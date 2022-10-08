@@ -6,12 +6,14 @@
 
 - [x] Easily copy data from postgres database to mongodb.
 
-- [ ] Denormalize/Reshape data saved in step 1 to make it better stored in MongoDB, like adding nested objects from other collection for 1 to many relationships, so that we can avoid joins in queries e.t.c
+- [x] Denormalize/Reshape data saved in step 1 to make it better stored in MongoDB, like adding nested objects from other collection for 1 to many relationships, so that we can avoid joins in queries e.t.c
 
 # examples & howtos
 
-1. To import data from any(local/remote) PostgreSQL database to any (local/remote) MongoDB, pass the appropriate parameters and relax while looking live progress in shell.  
-   In the example that follows, most code is comment to explain what can be customized and how, so do not be intimidated by the length of just one function call:
+## 1. data import example from PostgreSQL to MongoDB
+
+To import data from any(local/remote) PostgreSQL database to any (local/remote) MongoDB, pass the appropriate parameters and relax while looking live progress in shell.  
+ In the example that follows, most code is comment to explain what can be customized and how, so do not be intimidated by the length of just one function call:
 
 ```python
 
@@ -108,9 +110,118 @@ If data is really large and network speed is not very high, process may take a l
 
 If something went wrong, follow the output and most probably you will quickly find incorrect credentials errors from pymongo(mongo) or psycopg2(postgres), if it is not the case, please open new issue, or contact me directly.
 
-If something is not clear about arguments/functions, please open tests folder and look at argument/function that you want to see more examples for.
+## 2. Data denormalization example in MongoDB
 
-# how it works
+After we get data from Postgres, often we may need to transform it in a better shape to avoid joins in Mongo and this small function helps us to do this.
+
+If you want some complex transformations, please just use MongoDB aggregation pipeline, as this library does not try to replace it.
+
+Lets follow the example that is shown at the start of this README page, but in a bit more technical way.
+Initially postgres database structure looks like this:
+![ERD example](static/postgres_initial_ERD_for_countries_rivers_example.png 'ERD example')
+
+The goal is to just leave 1 'countries' table with all the data in it, without any foreign keys.
+To achieve this goal, we combine data in tables 1 step at a time:
+
+We start by importing all tables in MongoDB and automatically converting id fields to Mongo "\_id" fields.
+
+```python
+do_basic_import(
+    postgres_params=local_rivers_db_postgres_connection_params,  # postgres connection params similar to what you saw before
+    mongo_params=local_mongo_connection_params, # connection params for mongo
+    destination_db_name_in_mongo="rivers_db",   # storing data in rivers_db database
+    delete_existing_mongo_db=True,              # deleting database if exists
+    convert_primary_keys_to_mongo_ids=True,     # so that fields will be indexed for us and no 'random' _id-s will be added
+)
+```
+
+![CLI image](static/rivers_example_1.png)
+
+Now we have 4 collections in mongo with same names as in postgres. Lets start denormalization from harder part - make sure we have 'rivers' information embedded in 'countries' collection documents
+
+```python
+from importer.denormalize.denormalizer import denormalize_mongo
+
+# move specific river info to countries_rivers and delete rivers table
+denormalize_mongo(
+    mongo_client=local_mongo_client,
+    database="rivers_db",
+    collection="countries_rivers", # we are adding data in this collection
+    other_collection="rivers",     # from this collection
+    field_name="river_id",         # using this field
+    other_field_name="_id",        # when in other collection previous field matches this field value
+    new_field_name="river",        # we get all such documents from other collection and save it under this key
+    as_array=False,                # we know that we care only about 1 match in other table, so array is not needed
+    delete_source_field_name_after_lookup=True, # we no longer need river_id anymore, as all needed data will be stored under new_field_name ('river')
+    delete_other_collection=True,  # after operation, we do not need other collection, so delete it
+)
+```
+
+![CLI image](static/rivers_example_2.png)
+
+after this, as you can see in CLI output image, our 'countries_rivers' now has 'river' key that stores specific river information and river_id field is removed.
+
+Sample documents like this that are shown in CLI are random, so do not expect it to be correct, these documents just give us quick and easy way to look at changes and what caused that change. For example, we can clearly see red keys that are important and document structures before and after.
+
+Great, not we to get rid of 'countries_rivers' and move its data to countries.
+
+```python
+
+denormalize_mongo(
+    mongo_client=local_mongo_client,
+    database="rivers_db",
+    collection="countries",              # we are adding data to this collection
+    other_collection="countries_rivers", # from this one
+    field_name="_id",                    # using source field "_id"
+    other_field_name="country_code",     # that must match to "country_code" field
+    new_field_name="rivers",             # and storing matches in 'rivers' key
+    as_array=True,                       # in this case, we expect more than 1 match, so store all as array
+    delete_source_field_name_after_lookup=False, # deleting primary key field does not makes sense now
+    delete_other_collection=True,        # but other collection will not be needed anymore
+    leave_only_this_key_values_in_array="river",   # if you run code without this argument added,
+                                        # result will be that "rivers" array field will be added
+                                        # to each mongodb document in 'countries' collection, but as
+                                        # full matched documents are added by default, we will have list/array
+                                        # of objects with all keys found in each document of countries_rivers,
+                                        # but we just want to save info for 'river' key for each document,
+                                        # to achieve this, we use this argument and set it ti "river",
+                                        # so that array now will contain only information that was present
+                                        # in "river" key
+)
+```
+
+![CLI image](static/rivers_example_3.png)
+
+Nice, now the only thing we do not like is capital_id, lets remove it and replace with corresponding capital info from 'capital_cities'
+
+```python
+denormalize_mongo(
+    mongo_client=local_mongo_client,
+    database="rivers_db",
+    collection="countries",
+    other_collection="capital_cities",
+    field_name="capital_id",
+    other_field_name="_id",
+    new_field_name="capital",
+    as_array=False,
+    delete_source_field_name_after_lookup=True,
+    delete_other_collection=True,
+    do_not_copy_fields=["_id"],  # we do not want _id fields from 'capital_cities' to be stored in our new 'capital' key, so remove it this way
+)
+
+
+```
+
+And we are done!
+
+![CLI image](static/rivers_example_4.png)
+
+Now our 'countries' collection looks like this
+![CLI image](static/rivers_example_5.png)
+
+This exact example is implemented and tested in test_mongo_denormalizer\_\_skip_fields function in tests/test_mongo_denormalizer.py file, so for more info take a look at it.
+
+#### If something is not clear about arguments/functions, please look at tests or function code/docs.
 
 # installation
 
@@ -140,6 +251,12 @@ make up
 
 ```bash
 make test
+```
+
+or if you do not care about individual test outputs in CLI, then
+
+```bash
+make test_no_s
 ```
 
 # supported Python versions

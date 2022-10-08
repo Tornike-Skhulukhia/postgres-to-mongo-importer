@@ -54,6 +54,33 @@ def local_pg_client_with_sample_test_data_loaded(local_test_db_postgres_connecti
 
 
 ##################################################
+# local PostgreSQL sample country_rivers database
+##################################################
+
+
+@pytest.fixture(scope="session")
+def local_rivers_db_postgres_connection_params():
+    return dict(
+        database="country_rivers",
+        host="localhost",
+        user=os.environ.get("POSTGRES_USER"),
+        password=os.environ.get("POSTGRES_PASSWORD"),
+        port=5434,
+    )
+
+
+@pytest.fixture(scope="session")
+def local_pg_client_with_sample_country_rivers_data_loaded(
+    local_rivers_db_postgres_connection_params,
+):
+
+    return get_db_connection(
+        "postgresql",
+        local_rivers_db_postgres_connection_params,
+    )
+
+
+##################################################
 # local PostgreSQL sample world database
 ##################################################
 @pytest.fixture(scope="session")
