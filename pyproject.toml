@@ -5,7 +5,7 @@ description = ""
 authors = ["tornike <tornike.skhulukhia.1@iliauni.edu.ge>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 pymongo = "^4.2.0"
 psycopg2 = "^2.9.3"
 rich = "^12.6.0"

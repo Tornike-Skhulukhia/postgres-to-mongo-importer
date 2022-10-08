@@ -2,11 +2,16 @@
 
 ![tests](https://github.com/Tornike-Skhulukhia/postgres-to-mongo-importer/actions/workflows/main.yml/badge.svg)
 
-# Module allows to
+# Module allows to easily copy data from PostgreSQL database to MongoDB
 
-- [x] Easily copy data from postgres database to mongodb.
+![Basic copy example CLI image 1](static/basic_copy_import_image_1.png 'Basic copy example CLI image 1')
 
-- [x] Denormalize/Reshape data saved in step 1 to make it better stored in MongoDB, like adding nested objects from other collection for 1 to many relationships, so that we can avoid joins in queries e.t.c
+- [x] live progress monitor in CLI
+- [x] customizable list of wanted/unwanted tables
+- [x] customizable list of wanted/unwanted columns
+- [x] option to automatically convert postgres Primary Key/s into mongo \_id-s
+- [x] high chance of not loosing basic data types information as data is retrieved & written by Python, not just JSON
+- [x] small helper function to do basic reshape operations on downloaded data to make it stored in a more MongoDB way
 
 # Examples & howtos
 
@@ -101,10 +106,7 @@ do_basic_import(
 
 After this you should see info about progress for each table that is being copied to mongo and the total number of them that were found in postgres.
 
-For example:  
-![Basic copy example CLI image 1](static/basic_copy_import_image_1.png 'Basic copy example CLI image 1')
-
-Another example output with a bit different supplied flags to do_basic_import function:  
+Example output with a bit different supplied flags to do_basic_import function:  
 ![Basic copy example CLI image 2](static/basic_copy_import_image_2.png 'Basic copy example CLI image 2')
 
 If data is really large and network speed is not very high, process may take a looong time, but you can still do some tests with new data in mongodb as it arrives in 1000 row chunks at a time by default.
@@ -142,6 +144,10 @@ Now we have 4 collections in mongo with same names as in postgres. Lets start de
 
 ```python
 from importer.denormalize.denormalizer import denormalize_mongo
+from pymongo import MongoClient
+
+local_mongo_client = MongoClient(**mongo_params)
+
 
 denormalize_mongo(
     mongo_client=local_mongo_client,
@@ -234,12 +240,30 @@ python3 -m pip install poetry
 2. from source folder with pyproject.toml file inside, run
 
 ```bash
-poetry install
+poetry install --without dev
+```
+
+and activate new environment
+
+```bash
+poetry shell
 ```
 
 # Running tests
 
-1. make sure you have docker, docker-compose and make installed
+1. make sure you have docker, docker-compose, make and poetry installed
+
+2) from source folder with pyproject.toml file inside, run
+
+```bash
+poetry install
+```
+
+and activate new environment
+
+```bash
+poetry shell
+```
 
 2. run
 
