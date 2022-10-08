@@ -216,7 +216,7 @@ And we are done!
 
 ![CLI image](static/rivers_example_4.png)
 
-Now our 'countries' collection looks like this
+Now our 'countries' collection looks like this  
 ![CLI image](static/rivers_example_5.png)
 
 This exact example is implemented and tested in test_mongo_denormalizer\_\_skip_fields function in tests/test_mongo_denormalizer.py file, so for more info take a look at it.
@@ -265,7 +265,7 @@ Developed on 3.10, should also work on earlier versions
 
 # some thougts for future
 
-. refine printed text location on screen(especially for mongo denormalizer)
-. add/replace some CLI prints with logging (?)
-. add continuation & live sync options (?)
+. refine printed text location on screen(especially for mongo denormalizer)  
+. add/replace some CLI prints with logging (?)  
+. add continuation & live sync options (?)  
 . test & support replicated/sharded clusters

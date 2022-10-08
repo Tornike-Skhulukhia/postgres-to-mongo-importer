@@ -277,5 +277,3 @@ def test_denormalizer_using_rivers_example_from_readme(
 
     assert doc["capital"]["name"] == "Beijing"
     assert doc["capital"]["population"] == 7472000
-
-    breakpoint()
