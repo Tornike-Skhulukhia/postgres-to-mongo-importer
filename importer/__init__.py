@@ -1,9 +1,9 @@
 import time
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Extra
 from rich.console import Console
-
 
 RICH_CONSOLE = Console()
 
@@ -48,7 +48,9 @@ def show_nice_texts_on_process_start_and_end_in_cli(func):
         start_time = time.time()
         print("\n")
 
-        RICH_CONSOLE.print(" ⏱️  Process started ⏱️  ".center(98, "="), style="bold green")
+        RICH_CONSOLE.print(
+            f" ⏱️  Process started at {datetime.today()} ⏱️  ".center(98, "="), style="bold green"
+        )
 
         print()
         result = func(*args, **kwargs)

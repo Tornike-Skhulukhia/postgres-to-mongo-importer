@@ -35,7 +35,6 @@ def _copy_table_to_mongo(
         pg_cursor.execute(f"""SELECT COUNT(*) from "{table_name}" ;""")
         total_rows_number = pg_cursor.fetchone()[0]
 
-    with pg_conn.cursor() as pg_cursor:
         # get all column names of table
         pg_cursor.execute(f"""SELECT * FROM "{table_name}" LIMIT 0;""")
         pg_cursor.fetchmany(0)  # to make description available

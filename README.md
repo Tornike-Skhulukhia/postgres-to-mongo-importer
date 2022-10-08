@@ -148,6 +148,7 @@ Developed on 3.10, should also work on earlier versions
 
 # some thougts for future
 
-. add continuation option (?)  
-. add live sync option (?)  
+. refine printed text location on screen(especially for mongo denormalizer)
+. add/replace some CLI prints with logging (?)
+. add continuation & live sync options (?)
 . test & support replicated/sharded clusters

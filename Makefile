@@ -14,3 +14,7 @@ down_up:
 test:  # running from python -m way ensures that our code folders are added in sys path 
 	python -m pytest -vvvs .  
 
+# run tests
+test_no_s:  # running from python -m way ensures that our code folders are added in sys path 
+	python -m pytest -vvv .  
+

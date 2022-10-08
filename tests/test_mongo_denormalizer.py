@@ -34,7 +34,7 @@ def test_mongodb_is_populated_with_test_data(local_mongo_client_with_sample_worl
     )
 
 
-def test_mongo_denormalizer_on_one_to_one_relationship_1(
+def test_mongo_denormalizer__as_objects_and_delete_other_collection(
     local_mongo_client_with_sample_world_data_imported,
 ):
     countries_col = local_mongo_client_with_sample_world_data_imported["world"]["country"]
@@ -85,7 +85,7 @@ def test_mongo_denormalizer_on_one_to_one_relationship_1(
     ) == ["country", "countrylanguage"]
 
 
-def test_mongo_denormalizer_on_one_to_one_relationship_2(
+def test_mongo_denormalizer__delete_source_field(
     local_mongo_client_with_sample_world_data_imported,
 ):
     countries_col = local_mongo_client_with_sample_world_data_imported["world"]["country"]
@@ -111,7 +111,7 @@ def test_mongo_denormalizer_on_one_to_one_relationship_2(
     assert "capital" not in _keys and "the_capital" in _keys
 
 
-def test_mongo_denormalizer_on_one_to_one_relationship_3(
+def test_mongo_denormalizer__3(
     local_mongo_client_with_sample_world_data_imported,
 ):
     countries_col = local_mongo_client_with_sample_world_data_imported["world"]["country"]
@@ -145,7 +145,7 @@ def test_mongo_denormalizer_on_one_to_one_relationship_3(
     ]
 
 
-def test_mongo_denormalizer_on_one_to_one_relationship_skip_fields(
+def test_mongo_denormalizer__skip_fields(
     local_mongo_client_with_sample_world_data_imported,
 ):
     countries_col = local_mongo_client_with_sample_world_data_imported["world"]["country"]
