@@ -8,12 +8,13 @@
 
 - [x] Denormalize/Reshape data saved in step 1 to make it better stored in MongoDB, like adding nested objects from other collection for 1 to many relationships, so that we can avoid joins in queries e.t.c
 
-# examples & howtos
+# Examples & howtos
 
 ## 1. data import example from PostgreSQL to MongoDB
 
-To import data from any(local/remote) PostgreSQL database to any (local/remote) MongoDB, pass the appropriate parameters and relax while looking live progress in shell.  
- In the example that follows, most code is comment to explain what can be customized and how, so do not be intimidated by the length of just one function call:
+To import data from any(local/remote) PostgreSQL database to any (local/remote) MongoDB, pass the appropriate parameters and relax while looking live progress in shell.
+
+In the example that follows, most code is comment to explain what can be customized and how, so do not be intimidated by the length of just one function call:
 
 ```python
 
@@ -61,7 +62,7 @@ do_basic_import(
     ######################
     # optional arguments
     ######################
-    # do you want to clear contents of mongo datase before data retrieval starts? default is True,
+    # do you want to clear contents of mongo database before data retrieval starts? default is True,
     # so make sure it does not exist, or data in it is not useful or is backed up
     delete_existing_mongo_db=True,
     # if we do not want all tables from given postgres database and schema, list
@@ -71,7 +72,7 @@ do_basic_import(
                                 # with 'planets' in their names will match(ex: 'solar_planets'),
                                 #  of course if they exist in given database and schema.
     tables_not_to_copy=["user_", "country_"], # opposite of previous argument with similar syntax. here we filter
-                                        # out some tables that matched previously so that  we get only tables we want.
+                                        # out some tables that matched previously so that we get only tables we want.
                                         # in this example this way we will not download data for table 'user_planets'.
                                         # we can set tables_not_to_copy or tables_to_copy separately, both, or None.
 
@@ -98,7 +99,7 @@ do_basic_import(
 
 ```
 
-After this you should see info about progress for each table that is being copied to mongo and the total number of them that we found in postgres.
+After this you should see info about progress for each table that is being copied to mongo and the total number of them that were found in postgres.
 
 For example:  
 ![Basic copy example CLI image 1](static/basic_copy_import_image_1.png 'Basic copy example CLI image 1')
@@ -108,7 +109,7 @@ Another example output with a bit different supplied flags to do_basic_import fu
 
 If data is really large and network speed is not very high, process may take a looong time, but you can still do some tests with new data in mongodb as it arrives in 1000 row chunks at a time by default.
 
-If something went wrong, follow the output and most probably you will quickly find incorrect credentials errors from pymongo(mongo) or psycopg2(postgres), if it is not the case, please open new issue, or contact me directly.
+If something went wrong, follow the output and most probably you will quickly find incorrect credentials error from pymongo(mongo) or psycopg2(postgres), if it is not the case, please open new issue, or contact me directly.
 
 ## 2. Data denormalization example in MongoDB
 
@@ -121,9 +122,9 @@ Initially postgres database structure looks like this:
 ![ERD example](static/postgres_initial_ERD_for_countries_rivers_example.png 'ERD example')
 
 The goal is to just leave 1 'countries' table with all the data in it, without any foreign keys.
-To achieve this goal, we combine data in tables 1 step at a time:
+To achieve this goal, we combine data in tables 1 step at a time.
 
-We start by importing all tables in MongoDB and automatically converting id fields to Mongo "\_id" fields.
+Start by importing all tables in MongoDB and automatically converting primary keys to Mongo "\_id" fields.
 
 ```python
 do_basic_import(
@@ -131,7 +132,7 @@ do_basic_import(
     mongo_params=local_mongo_connection_params, # connection params for mongo
     destination_db_name_in_mongo="rivers_db",   # storing data in rivers_db database
     delete_existing_mongo_db=True,              # deleting database if exists
-    convert_primary_keys_to_mongo_ids=True,     # so that fields will be indexed for us and no 'random' _id-s will be added
+    convert_primary_keys_to_mongo_ids=True,     # reuse existing primary keys
 )
 ```
 
@@ -142,7 +143,6 @@ Now we have 4 collections in mongo with same names as in postgres. Lets start de
 ```python
 from importer.denormalize.denormalizer import denormalize_mongo
 
-# move specific river info to countries_rivers and delete rivers table
 denormalize_mongo(
     mongo_client=local_mongo_client,
     database="rivers_db",
@@ -159,11 +159,11 @@ denormalize_mongo(
 
 ![CLI image](static/rivers_example_2.png)
 
-after this, as you can see in CLI output image, our 'countries_rivers' now has 'river' key that stores specific river information and river_id field is removed.
+after this, as you can see on previous CLI output image, our 'countries_rivers' now has 'river' key that stores specific river information and river_id field is removed.
 
-Sample documents like this that are shown in CLI are random, so do not expect it to be correct, these documents just give us quick and easy way to look at changes and what caused that change. For example, we can clearly see red keys that are important and document structures before and after.
+Sample documents like this that are shown in CLI are random, so do not expect them to be related, these documents just give us quick and easy way to look at changes and what caused that change. For example, we can clearly see red keys that are important and document structures before and after.
 
-Great, not we to get rid of 'countries_rivers' and move its data to countries.
+Great, now we get rid of 'countries_rivers' collection and move its data to 'countries' collection.
 
 ```python
 
@@ -182,9 +182,9 @@ denormalize_mongo(
                                         # result will be that "rivers" array field will be added
                                         # to each mongodb document in 'countries' collection, but as
                                         # full matched documents are added by default, we will have list/array
-                                        # of objects with all keys found in each document of countries_rivers,
+                                        # of objects with all keys found in each document of 'countries_rivers',
                                         # but we just want to save info for 'river' key for each document,
-                                        # to achieve this, we use this argument and set it ti "river",
+                                        # to achieve this, we use this argument and set it to "river",
                                         # so that array now will contain only information that was present
                                         # in "river" key
 )
@@ -192,7 +192,7 @@ denormalize_mongo(
 
 ![CLI image](static/rivers_example_3.png)
 
-Nice, now the only thing we do not like is capital_id, lets remove it and replace with corresponding capital info from 'capital_cities'
+Nice, now the only thing we do not like is 'capital_id', lets remove it and replace with corresponding capital info from 'capital_cities'
 
 ```python
 denormalize_mongo(
@@ -223,7 +223,7 @@ This exact example is implemented and tested in test_mongo_denormalizer\_\_skip_
 
 #### If something is not clear about arguments/functions, please look at tests or function code/docs.
 
-# installation
+# Installation
 
 1. install poetry
 
@@ -237,7 +237,7 @@ python3 -m pip install poetry
 poetry install
 ```
 
-# running tests
+# Running tests
 
 1. make sure you have docker, docker-compose and make installed
 
@@ -259,13 +259,13 @@ or if you do not care about individual test outputs in CLI, then
 make test_no_s
 ```
 
-# supported Python versions
+# Supported Python versions
 
 Developed on 3.10, should also work on earlier versions
 
-# some thougts for future
+# Some thougts for future
 
-. refine printed text location on screen(especially for mongo denormalizer)  
+. refine printed text in CLI (especially for mongo denormalizer)  
 . add/replace some CLI prints with logging (?)  
 . add continuation & live sync options (?)  
 . test & support replicated/sharded clusters
